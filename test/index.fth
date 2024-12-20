@@ -70,6 +70,7 @@ cr .( \ INFO: neither `resolve-uri-here` nor `resolve-uri` is defined ) cr
 1024 buffer: uri-resolved-addr0
 : uri-resolved-buf ( -- a-addr u.size ) uri-resolved-addr0 1024 ;
 
+\ See: https://www.w3.org/TR/xpath-functions/#func-resolve-uri
 : resolve-uri ( sd.uri sd.uri.base -- sd.uri | sd.uri.resolved.transient )
   \ todo: the result URI must be normalized
   2>r test-path-full if 2r> 2drop exit then
@@ -80,7 +81,11 @@ cr .( \ INFO: neither `resolve-uri-here` nor `resolve-uri` is defined ) cr
 
 [then] \ now `resolve-uri` is defined anyway
 \TEST `resolve-uri` has the type ( sd.uri sd.uri.base -- sd.uri.resolved.transient )
-t{ s" foo" s" bar/baz" resolve-uri s" bar/foo" ends-with -> true }t
+t{ s" foo" s" bar/baz" resolve-uri s" bar/foo" equals -> true }t
+
+\TEST `resolve-uri` must return the same full path if any
+t{ s" /foo"       2dup s" bar/baz" resolve-uri  d=  -> true }t
+t{ s" about:foo"  2dup s" bar/baz" resolve-uri  d=  -> true }t
 
 : resolve-uri-here ( sd.uri sd.uri.base -- sd.uri.resolved )
   resolve-uri here swap 2dup 2>r dup allot move 0 c, 2r>
@@ -104,16 +109,21 @@ source-base-path s" /" starts-with  source-base-path s" :" search nip nip or  0=
 \TEST `apply-base-path`
 t{ s" /foo/bar" :noname ( sd -- flag ) source-base-path equals ; 1 2pick apply-base-path -> true }t
 
-[defined] resolve-uri-here [if]
 \TEST `apply-base-path` must take into account `source-base-path`
 t{ s" foo/bar" 2dup source-base-path resolve-uri-here 2swap :noname ( sd -- flag ) source-base-path equals ; 1 2roll apply-base-path -> true }t
-[then]
 
 [then]
 
 
 \TEST expected `source-path` inside `evaluate`
-t{ :noname true source-path nip 0= if exit then source-path s" about:input/" starts-with if exit then drop false ; s" execute" evaluate -> true }t
+t{ :noname true
+    source-path nip 0= if exit then
+    source-path s" about:input/" starts-with if exit then
+    source-path s" data:" starts-with if exit then
+    drop false
+  ;
+  s" execute" evaluate -> true
+}t
 
 \TEST `evaluate` must not affect `source-base-path`
 t{ source-base-path s" source-base-path equals" evaluate -> true }t
