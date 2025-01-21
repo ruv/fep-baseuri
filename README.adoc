@@ -1,0 +1,7 @@
+
+== Proposal on the base path concept
+
+- link:./terms.adoc[Additional terms and notation]
+
+- link:./glossary.adoc[Glossary]
+

@@ -1,0 +1,187 @@
+
+= Glossary
+:doctype: book
+:toc:
+
+
+
+== `resolve-path-in`
+`( sd.path sd.base-path sd.buffer -- sd.path | sd.path.resolved )`
+
+If _sd.path_ is an IRI or full path, return it unchanged.
+
+Otherwise, resolve the relative path _sd.path_
+against the base path _sd.base-path_
+using the algorithm defined in
+https://www.rfc-editor.org/rfc/rfc3986.html#section-5.2[RFC 3986 / Relative Resolution],
+adapted by treating any character that would not be valid in an RFC3986 URI
+or relative path in the same way that RFC3986 treats unreserved characters.
+No percent-encoding takes place.
+
+The resulting string _sd.path.resolved_ is placed in the buffer _sd.buffer_.
+If the buffer is not large enough to hold the resulting string,
+the exception `-81` "buffer too small" is thrown.
+
+
+=== Rationale
+
+The behavior of this word follows
+https://www.w3.org/TR/xpath-functions/#func-resolve-uri[`fn:resolve-uri` in XPath].
+
+If _sd.path_ is a full path, then it starts with the single forward slash "`/`".
+If _sd.path_ is an absolute IRI, then it contains "`://`"
+(typically, in the first 16 characters).
+These facts can be used to check whether to return _sd.path_ unchanged.
+
+
+
+== `resolve-path`
+`( sd.path sd.base-path -- sd.path | sd.path.resolved.transient )`
+
+Place the address and length of a transient buffer
+on the stack and perform the function of `resolve-path-in`.
+
+The transient buffer shall be at least 255 characters long.
+
+The resulting string _sd.path.resolved.transient_
+is valid until the next call to `resolve-path`.
+
+
+=== Rationale
+
+It seems, in most use cases a transient result is enough.
+
+
+
+== `source-base-path`
+`( -- sd.base-path )`
+
+_sd.base-path_ is the value of  `\((base-path))` of the input source
+whose interpretation was started most recently
+among the input sources whose interpretation has not yet been finished
+and for which `\((base-path))` is not empty, if such an input source exists.
+
+Otherwise, _sd.base-path_ is an implementation-defined default base path.
+
+The default base path shall be a full path or an IRI.
+
+The string _sd.base-path_ is valid until the word that assigns that value
+to `\((base-path))` returns (namely, `included` or `apply-base-path`), if any,
+or until interpretation of the input source is completed, otherwise.
+
+
+=== Reference implementation
+
+[,forth]
+----
+0 0 2value (base-path)
+
+: source-base-path ( -- sd.base-path )
+  (base-path) dup if exit then  2drop
+  system-working-directory
+;
+----
+
+Non-standard words used in this implementation:
+
+- `system-working-directory ( -- sd.path )` returns the working directory; the returned string is valid until interpretation of the current input source is completed.
+
+
+=== Rationale
+
+`source-base-path` can be used to compose a path relative to the file that is being interpreted.
+
+If the default base path is the working directory, and it can be changed by a program,
+then all the different values of the default base path
+that have been returned by `source-base-path`
+shall be valid until interpretation of the corresponding input source is completed.
+
+The word `source-base-path`
+when executed directly inside `evaluate`, `load`, and `include-file`
+returns the same value as outside of them.
+
+
+=== Test cases
+
+[,forth]
+----
+t{ source-base-path s" /" starts-with  source-base-path  16 min s" :" contains or  -> true }t
+t{ source-base-path s" source-base-path d=" evaluate -> true }t
+----
+
+
+
+== `apply-base-path`
+`( any xt sd.path -- any )`
+
+Perform the following steps:
+
+1. Resolve the path specified by the character string _sd.path_
+  against the path returned by `source-base-path`.
+2. Assign a copy of the resolved path to `\((base-path))`.
+3. Execute _xt_ with `catch`.
+4. Free the value of `\((base-path))` and restore it to its value in the step 1.
+5. Re-throw the exception code from `catch` in the step 3.
+
+
+=== Reference implementation
+
+[,forth]
+----
+: apply-base-path ( any xt sd.path -- any )
+  source-base-path resolve-path
+  2dup allocate throw swap 2dup 2>r move 2r> ( sd.base-path.new )
+  (base-path) 2>r  to (base-path)
+  catch ( ior1 )
+  (base-path) drop free swap ( ior2 ior1 )
+  2r>  to (base-path)
+  throw throw
+;
+----
+
+
+=== Rationale
+
+This word allows to set a specific base path for an evaluating string,
+for a file loaded with `include-file`, for a block loaded with `load`,
+or for a portion of the input source using a nested call to the Forth text interpreter.
+
+
+
+
+== `included`
+`( any sd.filename -- any )`
+
+Extend the semantics of
+https://forth-standard.org/standard/file/INCLUDED[11.6.1.1718 `INCLUDED`]
+with the following steps **before** reading the file:
+
+- Obtain the full path or IRI of the file identified by _sd.filename_
+and assign it to `\((base-path))`.
+
+
+=== Reference implementation
+
+[,forth]
+----
+: included ( any sd.filename -- any )
+  [: source-base-path included ;] -rot apply-base-path
+;
+----
+
+In this implementation, if a relative path is specified for `included`,
+then that path is resolved against the base path, which by default
+is the full path to the file being interpreted.
+
+
+=== Rationale
+
+In different Forth systems `include` resolves the relative path
+in different ways.
+
+The input string for `included` may be transient,
+and it can be modified while the file is being interpreted.
+So, even if this string is a full path, it cannot be assigned
+to `\((base-path))`.
+
+
