@@ -1,0 +1,33 @@
+
+== Additional terms and notation
+
+preceding area :: the portion of the input buffer that has already been parsed.
+
+following area :: the portion of the input buffer that has not yet been parsed.
+
+
+
+== Additional usage requirements
+
+
+=== Data types
+
+.Data Types
+[%autowidth]
+|===
+|Symbol |Data Type |Size on stack
+
+|sd
+|character string
+|2 cells
+|===
+
+==== Data-type relationships
+
+`sd ⇒ ( c-addr u  |  0 0 )`
+
+Note that `0` is not a member of `c-addr`
+(see the proposal:
+  https://forth-standard.org/proposals/exclude-zero-from-the-data-types-that-are-identifiers[
+  Exclude zero from the data types that are identifiers]).
+

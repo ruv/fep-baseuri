@@ -1,0 +1,397 @@
+= Accessing the input buffer
+:doctype: book
+:toc:
+
+
+
+== `source-offset`
+`( -- +n )`
+
+_+n_ is the number of characters in the _preceding area_ of the input buffer,
+this number is also the offset in the input buffer.
+
+
+=== Reference implementation
+
+[,forth]
+----
+: source-offset ( -- +n ) >in @ ;
+----
+
+
+=== Rationale
+
+`source-offset` is a replacement for `>in @`.
+
+
+
+== `set-source-offset`
+`( +n -- )`
+
+_+n_ is the new offset in the input buffer.
+
+If _+n_ is greater than the length of the input buffer,
+then the exception -24 is thrown.
+
+
+=== Reference implementation
+
+[,forth]
+----
+: set-source-offset ( +n -- )
+  dup 0< if -12 throw then \ "argument type mismatch" (an optional check)
+  dup source nip u> if -24 throw then \ "invalid numeric argument"
+  >in !
+;
+----
+
+
+=== Rationale
+
+`set-source-offset` is a safe replacement for `>in !`.
+
+
+
+== `source-preceding`
+`( -- sd )`
+
+_sd_ is the _preceding area_ of the input buffer
+(see the link:./terms.adoc[terms definitions]).
+
+The address _sd[c-addr]_ belongs to the input buffer.
+
+
+=== Reference implementation
+
+[,forth]
+----
+: source-preceding ( -- sd.the-preceding-area ) source drop source-offset ;
+----
+
+
+=== Rationale
+
+This word is often used under different names and code fragments.
+
+
+
+== `source-following`
+`( -- sd )`
+
+_sd_ is the _following area_ of the input buffer
+(see the link:./terms.adoc[terms definitions]).
+
+The address _sd[c-addr]_ belongs to the input buffer.
+
+
+=== Reference implementation
+
+[,forth]
+----
+: source-following ( -- sd.the-following-area ) source source-offset /string ;
+----
+
+
+=== Rationale
+
+This word is often used under different names and code fragments.
+
+
+=== Discussion
+
+Another possible name is `source-remaining`.
+Disadvantage: it does not play well with `source-preceding`.
+So another name for `source-preceding` should be found too.
+
+
+
+== `source-line`
+`( -- sd.line )`
+
+_sd.line_ is a character string that consists of all and only the characters
+of the rightmost line that starts in the _preceding area_,
+if this area is not empty, or the leftmost line in the _following area_ otherwise.
+
+If the input source is a block, this line length is always the same
+as the line length of a block (that is implementation-defined),
+and it starts at the beginning of the input buffer if the preceding area is empty,
+or, otherwise, at the rightmost offset that is multiple of the block's line length
+and less than the current offset in the input buffer.
+
+For other input source kinds, _sd.line_ consists of:
+
+- all the characters, except characters of a line terminator, in the _preceding area_
+  that follow the rightmost line terminator in the _preceding area_,
+  or belong to the _preceding area_ if such line terminator is absent,
+- and all the characters, except characters of a line terminator, in the _following area_
+  that precede the leftmost line terminator whose end character is in the _following area_,
+  or belong to the _following area_ if such line terminator is absent.
+
+
+=== Reference implementation
+
+[,forth]
+----
+: source-line ( -- sd.line )
+  blk @ if
+    source-preceding dup if 1- then ( c-addr.input-buffer +n.offset1 )
+    dup c/l mod - +  c/l  exit
+  then
+  source-id -1 = if
+    source-preceding line-terminator split-string-last
+    over if 2nip else 2drop then ( c-addr1 +n1 )
+    line-terminator nip 1- min ( c-addr1 0|1 )
+    source-following rot negate /string
+    line-terminator search 2drop
+    ( c-addr1 c-addr2 ) over -  exit
+  then
+  source
+;
+----
+
+Non-standard words used in this implementation:
+
+- `c/l ( -- +n )` returns the fixed line length in a block.
+- `line-terminator ( -- sd )` returns a line terminator sequence.
+- `split-string-last ( sd1 sd.key -- sd.left sd.right | sd1 0 0 )`
+
+
+=== Rationale
+
+This word is needed for error messages, logging and debugging purposes.
+
+For example, when the system displays the line in which an error occurred,
+and the input source is an evaluated string with a line terminator, or a block,
+the result of `source` cannot be used directly.
+The line for displaying can be obtained with `source-line`
+independently of the input source kind.
+
+This word takes into account a case when a line terminator length is greater than 1
+and one part of it is in the _preceding area_ and another part is in the _following area_.
+
+
+
+== `source-line-offset`
+`( -- u )`
+
+_u_ is the number of characters (pchar) in the preceding area
+that belong to the character string returned by `source-line`.
+
+
+=== Reference implementation
+
+[,forth]
+----
+: source-line-offset ( -- +n )
+  source-following drop
+  source-line drop  -
+;
+----
+
+
+=== Rationale
+
+The name `source-line-offset` is chosen to be consistent with the name `source-offset`.
+
+Note, when the input source is a block, and the offset in the input buffer
+is nonzero and a multiple of the block's line length,
+the return value is the block's line length,
+since in this case `source-line` returns the line that
+ends at the current offset in the input buffer.
+
+This word is useful for error messages, logging and debugging purposes.
+
+This word can be used to open the file that is the input source
+in an external editor on a specific line and character in the line.
+
+If the external editor requires a character position in extended characters,
+this offset can be calculated from the offset in primitive characters
+using `xchar+` or `x-size` as the following:
+
+[,forth]
+----
+: source-line-xchar ( -- +n\0 )
+  1  source-line  drop source-line-offset
+  bounds ?do
+    1+ i 6 x-size
+  +loop
+;
+----
+
+
+
+
+= Accessing the input source
+
+
+
+== `source-path`
+`( -- sd.path )`
+
+_sd.path_ is a character string that is a URI identifying the input source
+or the input source kind.
+This string is valid until interpretation of this input source is finished.
+If and only if the File URI scheme is implied
+(see https://www.rfc-editor.org/rfc/rfc8089.html[RFC 8089]),
+its "scheme" and "host" parts may be omitted.
+
+
+- If the input source is a file, _sd.path_ is a full path or URI
+by which the file can be opened with `open-file`.
+Whether the URI maps to a file in the local file system or to a remote resource
+depends on the implementation and configuration.
++
+Examples of correct _sd.path_ values:
+
+* `"/home/john-doe/example.fth"`
+* `"file:/home/john-doe/example.fth"`
+* `"file:///home/john-doe/example.fth"`
+* `"file://localhost/home/john-doe/example.fth"`
+* `"/Users/john-doe/example.fth"`
+* `"c:/Users/john-doe/example.fth"`
+* `"file:c:/Users/john-doe/example.fth"`
+* `"file:///c:/Users/john-doe/example.fth"`
+* `"file://localhost/c:/Users/john-doe/example.fth"`
+* `"https://github.com/john-doe/example/example.fth"`
+** for example, this can be used in a Forth system hosted in a web browser.
+
+- If the input source is the user input device,
+_sd.path_ identifies this input source kind.
++
+Here are some options to consider:
+
+* `"about:input/stdin"`
+* `"/dev/stdin"` (this option is not portable)
+
+
+- If the input source is an evaluated string,
+_sd.path_ identifies this input source kind
+(and optionally the string address and length).
++
+Here are some options to consider:
+
+* `"about:input/string"`
+* `"data:,"` (disadvantage: without actual data this URI is misleading)
+* `"data:"` (disadvantage: this URI appears to be invalid)
+
+- If the input source is a block,
+_sd.path_ identifies this input source kind
+(and optionally the block number and the path to the block file).
++
+Here are some options to consider:
+
+* `"about:input/block"`
+* `"about:input/block#{blk @ ntos}"`
+** example: `"about:input/block#123"`
+* `"about:input/block/{path-to-block-file}#{blk @ ntos}"`
+** example: `"about:input/block/home/john-doe/blockfile.blk#123"`
+
+
+=== Rationale
+
+The name `source-path` is chosen to be consistent with the name `source-id`
+(see https://forth-standard.org/standard/file/SOURCE-ID[11.6.1.2218 `SOURCE-ID`]).
+
+`source-path` is needed for error messages, logging and debugging purposes.
+
+The string returned by `source-path` must not be located
+in a https://forth-standard.org/standard/usage#usage:transient[transient region]
+or in a memory region allocated or reserved by the program,
+because the life time of such a string (and its contents)
+cannot be guaranteed by the system.
+
+One consequence of implying the File URI scheme by default is
+that only the forward slash is used as a path segment separator when a URI scheme is omitted.
+
+Note that Windows API supports the forward slash as a path segment separator.
+
+
+=== Discussion
+
+Probably, a better name is `source-uri`.
+(following `document-uri` in XPath,
+see: https://www.w3.org/TR/xpath-functions/#func-document-uri[fn:document-uri])
+
+
+
+== `source-line-number`
+`( -- u )`
+
+_u_ is the line number (starting from 1) in the input source
+that is returned by `source-line`.
+
+If the input source is a file or the user input device, _u_ is
+the the number of lines that have already been read (maybe partially)
+from this input source into the input buffer while refilling it.
+
+If the input source is an evaluated string, _u_ is
+the the number of line terminators
+in the _preceding area_ of the input buffer
+plus 1.
+
+If the input source is a block, the lines are numbered
+within this block only.
+
+
+=== Reference implementation
+
+[,forth]
+----
+: source-line-number ( -- +n )
+  blk @ if
+    source-offset dup if 1- then c/l / 1+ exit
+  then
+  source-id -1 = if
+    1 >r
+    source-preceding begin
+      line-terminator substring-after over while
+      r> 1+ r>
+    repeat  r>  exit
+  then
+  counter-of-refills
+;
+----
+
+Non-standard words used in this implementation:
+
+- `c/l ( -- +n )` returns the fixed line length in a block.
+- `line-terminator ( -- sd )` returns a line terminator sequence.
+- `counter-of-refills ( -- +n )` returns the number of times the input buffer has been refilled
+  within the current input source.
+- `substring-after ( sd1 sd.key -- sd.right | 0 0 )` returns the right part of the string _sd1_
+  after the substring _sd.key_ if it exists, or 0 0 otherwise.
+
+The words `save-input` and `restore-input` (if they are provided)
+should correctly affect `counter-of-refills`.
+
+
+=== Rationale
+
+This word is needed for error messages, logging and debugging purposes.
+
+This word can be used to open the file in an external editor on a specific line.
+
+When a file is loaded using `include-file`, the initial read position can be greater than 0.
+The system does not need to keep track of the number of lines in the input source
+before the initial read position.
+
+For blocks, the lines are numbered within one block only.
+
+This word should correctly handle the case when `refill` reads only part of a line
+(when the line is too long to fit into the input buffer, if the system can handle this case).
+
+This word should correctly handle the case when `save-input` and `restore-input`
+are used (if they are provided).
+
+
+=== Discussion
+
+Should line numbers start from 0 or from 1?
+
+Typically, line numbers starts from 1 (as well as stack parameters in Forth).
+
+For comparison,
+the offset in the input buffer starts from `0` because it is actually
+a boundary between characters,
+and it represents the number of characters in the preceding area of the input buffer.
+

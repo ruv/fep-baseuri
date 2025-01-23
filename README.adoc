@@ -5,3 +5,7 @@
 
 - link:./glossary.adoc[Glossary]
 
+
+== Accessors to the input buffer and the input source details
+
+- link:./introspection/readme.adoc[Index]
