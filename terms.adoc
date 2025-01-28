@@ -20,12 +20,13 @@ see https://www.rfc-editor.org/rfc/rfc3986.html#section-5.1[RFC 3986 / Establish
 
 In a general case, a base path is an https://en.wikipedia.org/wiki/Internationalized_Resource_Identifier[IRI].
 
-[sidebar]
+--
 The only significant difference of IRIs from URIs is that
 in IRIs the Universal Character Set (UNICODE) is used,
 where URIs were limited to ASCII
 and so the https://en.wikipedia.org/wiki/Percent-encoding[percent-encoding]
 is used for characters outside the ASCII charset.
+--
 
 If and only if the implied URI scheme of a base path is `file:`
 (see https://www.rfc-editor.org/rfc/rfc8089.html[RFC 8089: The "file" URI Scheme]),
@@ -76,6 +77,9 @@ This internal slot is not accessible to a program
 and need not actually exist (in any sense).
 It is defined solely to aid the specification
 of the semantics of words.
+
+Unless the context indicates otherwise,
+`\((base-path))` is a slot of the current input source.
 
 By default, `\((base-path))` is an empty string.
 

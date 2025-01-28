@@ -118,10 +118,13 @@ Perform the following steps:
 
 1. Resolve the path specified by the character string _sd.path_
   against the path returned by `source-base-path`.
-2. Assign a copy of the resolved path to `\((base-path))`.
+2. Assign a copy of the resulting path to `\((base-path))`.
 3. Execute _xt_ with `catch`.
 4. Free the value of `\((base-path))` and restore it to its value in the step 1.
 5. Re-throw the exception code from `catch` in the step 3.
+
+Note: an implementation must not assign _sd.path_ to `\((base-path))`,
+because the life time of this string is unknown.
 
 
 === Reference implementation
@@ -130,7 +133,7 @@ Perform the following steps:
 ----
 : apply-base-path ( any xt sd.path -- any )
   source-base-path resolve-path
-  2dup allocate throw swap 2dup 2>r move 2r> ( sd.base-path.new )
+  dup allocate throw swap 2dup 2>r move 2r> ( sd.base-path.new )
   (base-path) 2>r  to (base-path)
   catch ( ior1 )
   (base-path) drop free swap ( ior2 ior1 )
@@ -148,7 +151,6 @@ or for a portion of the input source using a nested call to the Forth text inter
 
 
 
-
 == `included`
 `( any sd.filename -- any )`
 
@@ -157,7 +159,8 @@ https://forth-standard.org/standard/file/INCLUDED[11.6.1.1718 `INCLUDED`]
 with the following steps **before** reading the file:
 
 - Obtain the full path or IRI of the file identified by _sd.filename_
-and assign it to `\((base-path))`.
+and assign it to `\((base-path))` of the current input source
+(that is the file identified by _sd.filename_).
 
 
 === Reference implementation
