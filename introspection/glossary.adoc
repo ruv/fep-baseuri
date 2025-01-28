@@ -231,8 +231,8 @@ using `xchar+` or `x-size` as the following:
 _sd.path_ is a character string that is a
 https://en.wikipedia.org/wiki/Internationalized_Resource_Identifier[IRI]
 identifying the input source or the input source kind.
-
-_sd.path_ is valid until interpretation of this input source is finished.
+ +
+_sd.path_ is valid until interpretation of this input source is complete.
 
 If and only if the File URI scheme is implied
 (see https://www.rfc-editor.org/rfc/rfc8089.html[RFC 8089]),

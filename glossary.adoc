@@ -58,7 +58,7 @@ It seems, in most use cases a transient result is enough.
 
 _sd.base-path_ is the value of  `\((base-path))` of the input source
 whose interpretation was started most recently
-among the input sources whose interpretation has not yet been finished
+among the input sources whose interpretation is not yet complete
 and for which `\((base-path))` is not empty, if such an input source exists.
 
 Otherwise, _sd.base-path_ is an implementation-defined default base path.
@@ -67,7 +67,7 @@ The default base path shall be a full path or an IRI.
 
 The string _sd.base-path_ is valid until the word that assigns that value
 to `\((base-path))` returns (namely, `included` or `apply-base-path`), if any,
-or until interpretation of the input source is completed, otherwise.
+or until interpretation of the corresponding input source is complete, otherwise.
 
 
 === Reference implementation
@@ -84,7 +84,8 @@ or until interpretation of the input source is completed, otherwise.
 
 Non-standard words used in this implementation:
 
-- `system-working-directory ( -- sd.path )` returns the working directory; the returned string is valid until interpretation of the current input source is completed.
+- `system-working-directory ( -- sd.path )` returns the working directory;
+the returned string is valid until interpretation of the current input source is complete.
 
 
 === Rationale
@@ -94,7 +95,7 @@ Non-standard words used in this implementation:
 If the default base path is the working directory, and it can be changed by a program,
 then all the different values of the default base path
 that have been returned by `source-base-path`
-shall be valid until interpretation of the corresponding input source is completed.
+shall be valid until interpretation of the corresponding input source is complete.
 
 The word `source-base-path`
 when executed directly inside `evaluate`, `load`, and `include-file`
