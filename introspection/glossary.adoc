@@ -12,9 +12,9 @@
 == `source-offset`
 `( -- +n )`
 
-_+n_ is the number of characters in the _preceding area_ of the input buffer,
-this number is also the offset in the input buffer.
+_+n_ is the offset in the input buffer.
 
+See also: link:./terms.adoc[Terms and notations].
 
 === Reference implementation
 
@@ -38,6 +38,8 @@ _+n_ is the new offset in the input buffer.
 If _+n_ is greater than the length of the input buffer,
 then the exception -24 is thrown.
 
+See also: link:./terms.adoc[Terms and notations].
+
 
 === Reference implementation
 
@@ -60,10 +62,11 @@ then the exception -24 is thrown.
 == `source-preceding`
 `( -- sd )`
 
-_sd_ is the _preceding area_ of the input buffer
-(see the link:./terms.adoc[terms definitions]).
+_sd_ is the _preceding area_ of the input buffer.
+ +
+The address _sd[c-addr]_ is equal to the address of the input buffer.
 
-The address _sd[c-addr]_ belongs to the input buffer.
+See also: link:./terms.adoc[Terms and notations].
 
 
 === Reference implementation
@@ -83,10 +86,12 @@ This word is often used under different names and code fragments.
 == `source-following`
 `( -- sd )`
 
-_sd_ is the _following area_ of the input buffer
-(see the link:./terms.adoc[terms definitions]).
+_sd_ is the _following area_ of the input buffer.
 
-The address _sd[c-addr]_ belongs to the input buffer.
+The address _sd[c-addr]_ is greater than or equal to the address of the input buffer,
+and is less than or equal to the sum of the input buffer address and its length.
+
+See also: link:./terms.adoc[Terms and notations].
 
 
 === Reference implementation
@@ -172,7 +177,7 @@ The line for displaying can be obtained with `source-line`
 independently of the input source kind.
 
 This word takes into account a case when a line terminator length is greater than 1
-and one part of it is in the _preceding area_ and another part is in the _following area_.
+and its one part is in the _preceding area_ and another part is in the _following area_.
 
 
 
