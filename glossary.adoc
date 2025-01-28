@@ -120,11 +120,19 @@ Perform the following steps:
   against the path returned by `source-base-path`.
 2. Assign a copy of the resulting path to `\((base-path))`.
 3. Execute _xt_ with `catch`.
-4. Free the value of `\((base-path))` and restore it to its value in the step 1.
+4. Restore `\((base-path))` to its value in the step 1.
 5. Re-throw the exception code from `catch` in the step 3.
 
 Note: an implementation must not assign _sd.path_ to `\((base-path))`,
 because the life time of this string is unknown.
+
+Note: an implementation must not assume that `\((base-path))`
+before step 4 contains the same value as it did before step 3,
+because it can be assigned to a different value by `restore-input`.
+
+An ambiguous condition exists if the input source state is saved using `save-input`
+during execution of _xt_ and restored using `restore-input` to the saved state
+after execution of _xt_.
 
 
 === Reference implementation
@@ -133,11 +141,11 @@ because the life time of this string is unknown.
 ----
 : apply-base-path ( any xt sd.path -- any )
   source-base-path resolve-path
-  dup allocate throw swap 2dup 2>r move 2r> ( sd.base-path.new )
+  dup allocate throw dup >r swap 2dup 2>r move 2r> ( sd.base-path.new )
   (base-path) 2>r  to (base-path)
   catch ( ior1 )
-  (base-path) drop free swap ( ior2 ior1 )
   2r>  to (base-path)
+  r> free swap ( ior2 ior1 )
   throw throw
 ;
 ----
