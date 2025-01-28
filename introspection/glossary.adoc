@@ -228,17 +228,24 @@ using `xchar+` or `x-size` as the following:
 == `source-path`
 `( -- sd.path )`
 
-_sd.path_ is a character string that is a URI identifying the input source
-or the input source kind.
-This string is valid until interpretation of this input source is finished.
+_sd.path_ is a character string that is a
+https://en.wikipedia.org/wiki/Internationalized_Resource_Identifier[IRI]
+identifying the input source or the input source kind.
+
+_sd.path_ is valid until interpretation of this input source is finished.
+
 If and only if the File URI scheme is implied
 (see https://www.rfc-editor.org/rfc/rfc8089.html[RFC 8089]),
 its "scheme" and "host" parts may be omitted.
 
+_sd.path_ is an empty string if and only if there is no input source available
+(and then https://forth-standard.org/standard/core/REFILL[`refill`] should throw an exception).
 
-- If the input source is a file, _sd.path_ is a full path or URI
+_sd.path_ depends on the input source kind as follows.
+
+- If the input source is a file, _sd.path_ is a full path or IRI
 by which the file can be opened with `open-file`.
-Whether the URI maps to a file in the local file system or to a remote resource
+Whether the IRI maps to a file in the local file system or to a remote resource
 depends on the implementation and configuration.
 +
 Examples of correct _sd.path_ values:
@@ -248,8 +255,9 @@ Examples of correct _sd.path_ values:
 * `"file:///home/john-doe/example.fth"`
 * `"file://localhost/home/john-doe/example.fth"`
 * `"/Users/john-doe/example.fth"`
-* `"c:/Users/john-doe/example.fth"`
-* `"file:c:/Users/john-doe/example.fth"`
+* `"/c:/Users/john-doe/example.fth"`
+** Should the variant `"c:/Users/john-doe/example.fth"` be allowed?
+* `"file:/c:/Users/john-doe/example.fth"`
 * `"file:///c:/Users/john-doe/example.fth"`
 * `"file://localhost/c:/Users/john-doe/example.fth"`
 * `"https://github.com/john-doe/example/example.fth"`

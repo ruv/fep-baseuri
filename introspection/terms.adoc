@@ -5,6 +5,10 @@ preceding area :: the portion of the input buffer that has already been parsed.
 
 following area :: the portion of the input buffer that has not yet been parsed.
 
+the input source ::
+  unless the context indicates otherwise,
+  this is the input source from which `refill` reads data (the current input source).
+
 
 
 == Additional usage requirements
