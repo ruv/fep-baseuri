@@ -34,6 +34,12 @@ If _sd.path_ is an absolute IRI, then it contains "`://`"
 These facts can be used to check whether to return _sd.path_ unchanged.
 
 
+=== Discussion
+
+Find a better name for this word.
+
+The throw code `-81` may be changed.
+
 
 == `resolve-path`
 `( sd.path sd.base-path -- sd.path | sd.path.resolved.transient )`
@@ -49,7 +55,7 @@ is valid until the next call to `resolve-path`.
 
 === Rationale
 
-It seems, in most use cases a transient result is enough.
+It seems, in many use cases a transient result is enough.
 
 
 
@@ -65,9 +71,11 @@ Otherwise, _sd.base-path_ is an implementation-defined default base path.
 
 The default base path shall be a full path or an IRI.
 
-The string _sd.base-path_ is valid until the word that assigns that value
-to `\((base-path))` returns (namely, `included` or `apply-base-path`), if any,
+The string _sd.base-path_ is valid until the word that has assigned that value
+to `\((base-path))` (namely, `included` or `apply-base-path`), if any, returns control,
 or until interpretation of the corresponding input source is complete, otherwise.
+
+See also: link:./terms.adoc#input-source[Input source].
 
 
 === Reference implementation
@@ -92,13 +100,16 @@ the returned string is valid until interpretation of the current input source is
 
 `source-base-path` can be used to compose a path relative to the file that is being interpreted.
 
+Due to the life time guarantee, the resulting string can be safely passed
+in any downwards calls, and can be returned upwards (the program knows how far).
+
 If the default base path is the working directory, and it can be changed by a program,
 then all the different values of the default base path
 that have been returned by `source-base-path`
 shall be valid until interpretation of the corresponding input source is complete.
 
 The word `source-base-path`
-when executed directly inside `evaluate`, `load`, and `include-file`
+when it is executed directly inside `evaluate`, `load`, and `include-file`
 returns the same value as outside of them.
 
 
@@ -110,6 +121,11 @@ t{ source-base-path s" /" starts-with  source-base-path  16 min s" :" contains o
 t{ source-base-path s" source-base-path d=" evaluate -> true }t
 ----
 
+
+=== Discussion
+
+Does it make sense to let the returned string be in a transient buffer?
+Then, it cannot be passed to downwards like in a test case above.
 
 
 == `apply-base-path`
@@ -134,6 +150,8 @@ because it can be assigned to a different value by `restore-input`.
 An ambiguous condition exists if the input source state is saved using `save-input`
 during execution of _xt_ and restored using `restore-input` to the saved state
 after execution of _xt_.
+
+See also: link:./terms.adoc#input-source[Input source].
 
 
 === Reference implementation
@@ -170,6 +188,8 @@ with the following steps **before** reading the file:
 - Obtain the full path or IRI of the file identified by _sd.filename_
 and assign it to `\((base-path))` of the current input source
 (that is the file identified by _sd.filename_).
+
+See also: link:./terms.adoc#input-source[Input source].
 
 
 === Reference implementation
