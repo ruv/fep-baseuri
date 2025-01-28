@@ -1,6 +1,11 @@
-= Accessing the input buffer
+= Glossary
 :doctype: book
 :toc:
+
+
+
+
+= Accessing the input buffer
 
 
 
