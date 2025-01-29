@@ -71,8 +71,10 @@ Otherwise, _sd.base-path_ is an implementation-defined default base path.
 
 The default base path shall be a full path or an IRI.
 
-The string _sd.base-path_ is valid until the word that has assigned that value
-to `\((base-path))` (namely, `included` or `apply-base-path`), if any, returns control,
+The string _sd.base-path_ is valid until the word
+that has set `\((base-path))` to that value
+(namely, `included` or `apply-base-path`),
+if any, returns control,
 or until interpretation of the corresponding input source is complete, otherwise.
 
 See also: link:./terms.adoc#input-source[Input source].
@@ -135,17 +137,17 @@ Perform the following steps:
 
 1. Resolve the path specified by the character string _sd.path_
   against the path returned by `source-base-path`.
-2. Assign a copy of the resulting path to `\((base-path))`.
+2. Set `\((base-path))` to a copy of the resolved path.
 3. Execute _xt_ with `catch`.
 4. Restore `\((base-path))` to its value in the step 1.
 5. Re-throw the exception code from `catch` in the step 3.
 
-Note: an implementation must not assign _sd.path_ to `\((base-path))`,
-because the life time of this string is unknown.
+Note: an implementation must not set `\((base-path))` to _sd.path_,
+because the lifetime of this string is unknown.
 
-Note: an implementation must not assume that `\((base-path))`
-before step 4 contains the same value as it did before step 3,
-because it can be assigned to a different value by `restore-input`.
+Note: an implementation must not assume that the value of `\((base-path))`
+before step 4 is the same as before step 3,
+because it can be set to a different value by `restore-input`.
 
 An ambiguous condition exists if the input source state is saved using `save-input`
 during execution of _xt_ and restored using `restore-input` to the saved state
@@ -186,8 +188,7 @@ https://forth-standard.org/standard/file/INCLUDED[11.6.1.1718 `INCLUDED`]
 with the following step **after** storing zero in `BLK`:
 
 - Obtain the full path or IRI of the file identified by _sd.filename_
-and assign it to `\((base-path))` of the current input source
-(that is the file identified by _sd.filename_).
+and set `\((base-path))` to the obtained value.
 
 See also: link:./terms.adoc#input-source[Input source].
 
@@ -212,11 +213,12 @@ In different Forth systems `included` resolves the relative path
 in different ways.
 
 `included` establishes the new input source,
-whose `\((base-path))` slot initially contains an empty string.
+whose `\((base-path))` is initially an empty string,
+and is then set to a full path.
 
 The input string for `included` may be transient,
 and it can be modified while the file is being interpreted.
-So, even if this string is a full path, it cannot be assigned
-to `\((base-path))`.
+So, even if this string is a full path, `\((base-path))` cannot be set
+directly to this string.
 
 
