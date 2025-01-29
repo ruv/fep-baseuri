@@ -183,7 +183,7 @@ or for a portion of the input source using a nested call to the Forth text inter
 
 Extend the semantics of
 https://forth-standard.org/standard/file/INCLUDED[11.6.1.1718 `INCLUDED`]
-with the following steps **before** reading the file:
+with the following step **after** storing zero in `BLK`:
 
 - Obtain the full path or IRI of the file identified by _sd.filename_
 and assign it to `\((base-path))` of the current input source
@@ -208,8 +208,11 @@ is the full path to the file being interpreted.
 
 === Rationale
 
-In different Forth systems `include` resolves the relative path
+In different Forth systems `included` resolves the relative path
 in different ways.
+
+`included` establishes the new input source,
+whose `\((base-path))` slot initially contains an empty string.
 
 The input string for `included` may be transient,
 and it can be modified while the file is being interpreted.
