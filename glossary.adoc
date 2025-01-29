@@ -102,7 +102,9 @@ the returned string is valid until interpretation of the current input source is
 
 `source-base-path` can be used to compose a path relative to the file that is being interpreted.
 
-Due to the life time guarantee, the resulting string can be safely passed
+Due to the specified lifetime guarantees for _sd.path_,
+it cannot be located in a transient buffer,
+and it can be safely passed
 in any downwards calls, and can be returned upwards (the program knows how far).
 
 If the default base path is the working directory, and it can be changed by a program,
