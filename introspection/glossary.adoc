@@ -182,9 +182,9 @@ and its one part is in the _preceding area_ and another part is in the _followin
 
 
 == `source-line-offset`
-`( -- u )`
+`( -- +n )`
 
-_u_ is the number of characters (pchar) in the preceding area
+_+n_ is the number of characters (pchar) in the preceding area
 that belong to the character string returned by `source-line`.
 
 
@@ -380,7 +380,7 @@ within this block only.
 
 [,forth]
 ----
-: source-line-number ( -- +n )
+: source-line-number ( -- u )
   blk @ if
     source-offset dup if 1- then c/l / 1+ exit
   then
@@ -428,6 +428,8 @@ are used (if they are provided).
 
 
 === Discussion
+
+Maybe a better name for this word?
 
 Should line numbers start from 0 or from 1?
 
