@@ -67,6 +67,7 @@ See also: link:./introspection/terms.adoc[introspection / terms].
 
 
 
+
 == Additional usage requirements
 
 
@@ -93,3 +94,31 @@ because the base path is part of the input source specification state.
 ==== Rationale
 
 See also: https://forth-standard.org/standard/exception/THROW#contribution-283[Input source after THROW].
+
+
+
+
+== Additional documentation requirements
+
+
+
+=== System documentation
+
+
+==== Implementation-defined options
+
+- the size of the transient buffer for the
+link:./glossary.adoc#resolve-path[`resolve-path`] word.
+
+
+==== Ambiguous conditions
+
+- the state of the input source specification is saved within execution of
+link:./glossary.adoc#apply-base-path[`apply-base-path`]
+(see https://forth-standard.org/standard/core/SAVE-INPUT[`save-input`])
+and restored to the saved state after this execution
+(see https://forth-standard.org/standard/core/RESTORE-INPUT[`restore-input`]).
+
+See also:
+https://forth-standard.org/proposals/obsolescence-for-save-input-and-restore-input[Proposal 291
+/ Obsolescence for SAVE-INPUT and RESTORE-INPUT].
