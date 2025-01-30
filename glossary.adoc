@@ -8,12 +8,13 @@
 == `resolve-path-in`
 `( sd.path sd.base-path sd.buffer -- sd.path | sd.path.resolved )`
 
-If _sd.path_ is an IRI or full path, return it unchanged.
+If _sd.path_ is an absolute IRI or full path, return it unchanged.
 
 Otherwise, resolve the relative path _sd.path_
 against the base path _sd.base-path_
 using the algorithm defined in
-https://www.rfc-editor.org/rfc/rfc3986.html#section-5.2[RFC 3986 / Relative Resolution],
+https://www.rfc-editor.org/rfc/rfc3986.html#section-5.2[RFC 3986
+(Uniform Resource Identifier, 5.2. Relative Resolution)],
 adapted by treating any character that would not be valid in an RFC3986 URI
 or relative path in the same way that RFC3986 treats unreserved characters.
 No percent-encoding takes place.
@@ -29,7 +30,7 @@ The behavior of this word follows
 https://www.w3.org/TR/xpath-functions/#func-resolve-uri[`fn:resolve-uri` in XPath].
 
 If _sd.path_ is a full path, then it starts with the single forward slash "`/`".
-If _sd.path_ is an absolute IRI, then it contains "`://`"
+If _sd.path_ is an absolute IRI, then it starts with [A-z] and contains "`:`"
 (typically, in the first 16 characters).
 These facts can be used to check whether to return _sd.path_ unchanged.
 
@@ -77,7 +78,9 @@ that has set `\((base-path))` to that value
 if any, returns control,
 or until interpretation of the corresponding input source is complete, otherwise.
 
-See also: link:./terms.adoc#input-source[Input source].
+See also: link:./terms.adoc#input-source[Input source],
+link:#apply-base-path[`apply-base-path`],
+link:#included[`included`].
 
 
 === Reference implementation
@@ -155,7 +158,9 @@ An ambiguous condition exists if the input source state is saved using `save-inp
 during execution of _xt_ and restored using `restore-input` to the saved state
 after execution of _xt_.
 
-See also: link:./terms.adoc#input-source[Input source].
+See also: link:./terms.adoc#input-source[Input source],
+link:#resolve-path[`resolve-path`].
+
 
 
 === Reference implementation
@@ -200,7 +205,7 @@ See also: link:./terms.adoc#input-source[Input source].
 [,forth]
 ----
 : included ( any sd.filename -- any )
-  [: source-base-path included ;] -rot apply-base-path
+  [: source-base-path included ;] rot rot apply-base-path
 ;
 ----
 

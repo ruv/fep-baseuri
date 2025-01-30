@@ -36,7 +36,7 @@ See also: link:./terms.adoc[Terms and notations].
 _+n_ is the new offset in the input buffer.
 
 If _+n_ is greater than the length of the input buffer,
-then the exception -24 is thrown.
+then the exception `-24` "invalid numeric argument" is thrown.
 
 See also: link:./terms.adoc[Terms and notations].
 
@@ -47,7 +47,7 @@ See also: link:./terms.adoc[Terms and notations].
 ----
 : set-source-offset ( +n -- )
   dup 0< if -12 throw then \ "argument type mismatch" (an optional check)
-  dup source nip u> if -24 throw then \ "invalid numeric argument"
+  dup source nip > if -24 throw then \ "invalid numeric argument"
   >in !
 ;
 ----
@@ -352,7 +352,8 @@ Should a path starting with a Windows drive letter be allowed?
 (e.g. "c:/Users/john-doe/example.fth")
  +
 See also:
-https://www.rfc-editor.org/rfc/rfc8089.html#appendix-E[RFC 8089 / Nonstandard Syntax Variations].
+https://www.rfc-editor.org/rfc/rfc8089.html#appendix-E[RFC 8089 /
+The "file" URI Scheme / Appendix E. Nonstandard Syntax Variations].
 
 
 
