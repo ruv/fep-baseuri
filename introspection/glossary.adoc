@@ -238,25 +238,30 @@ using `xchar+` or `x-size` as the following:
 == `source-path`
 `( -- sd.path )`
 
-_sd.path_ is a character string that is a
+_sd.path_ is a character string that is an
 https://en.wikipedia.org/wiki/Internationalized_Resource_Identifier[IRI]
 identifying the input source or the input source kind.
  +
 _sd.path_ is valid until interpretation of this input source is complete.
 
-If and only if the File URI scheme is implied
+If and only if _sd.path_ is in the File URI scheme
 (see https://www.rfc-editor.org/rfc/rfc8089.html[RFC 8089]),
 its "scheme" and "host" parts may be omitted.
 
-_sd.path_ is an empty string if and only if there is no input source available
+If _sd.path_ is in the File URI scheme,
+this path shall be acceptable to `open-file`.
+
+If _sd.path_ is an empty string, there is no input source available
 (and then https://forth-standard.org/standard/core/REFILL[`refill`] should throw an exception).
 
 _sd.path_ depends on the input source kind as follows.
 
-- If the input source is a file, _sd.path_ is a full path or IRI
-by which the file can be opened with `open-file`.
-Whether the IRI maps to a file in the local file system or to a remote resource
-depends on the implementation and configuration.
+- If the input source is a file and its location is known,
+then _sd.path_ is a full path in the local file system
+or IRI (not necessarily in the File URI scheme)
+by which this file can be opened with `open-file`.
+Whether an IRI maps to a file in the local file system or to a remote resource
+is implementation-defined.
 +
 Examples of correct _sd.path_ values:
 
@@ -271,7 +276,14 @@ Examples of correct _sd.path_ values:
 * `"file:///c:/Users/john-doe/example.fth"`
 * `"file://localhost/c:/Users/john-doe/example.fth"`
 * `"https://github.com/john-doe/example/example.fth"`
-** for example, this can be used in a Forth system hosted in a web browser.
+** For example, such a path can be used in a Forth system hosted in a web browser.
+
+- If the input source is a file and its location is unknown,
+_sd.path_ identifies this input source kind.
++
+Here an option to consider:
+
+* `"about:input/file"`
 
 - If the input source is the user input device,
 _sd.path_ identifies this input source kind.
@@ -315,20 +327,32 @@ The name `source-path` is chosen to be consistent with the name `source-id`
 The string returned by `source-path` must not be located
 in a https://forth-standard.org/standard/usage#usage:transient[transient region]
 or in a memory region allocated or reserved by the program,
-because the life time of such a string (and its contents)
+because the lifetime of such a string (and its contents)
 cannot be guaranteed by the system.
 
-One consequence of implying the File URI scheme by default is
-that only the forward slash is used as a path segment separator when a URI scheme is omitted.
+When the returned string is a path in the File URI scheme,
+it is up to the implementor whether it starts with `"file:"` or with `"/"`,
+but in either case `open-file` must be able to open a file using that string.
 
-Note that Windows API supports the forward slash as a path segment separator.
+One consequence of implying the File URI scheme by default is
+that *when a scheme is omitted*,
+only a forward slash is used as a path segment separator
+and the path is a full file name (i.e., it starts with a forward slash).
+
+Note that Windows API supports a forward slash as a path segment separator.
 
 
 === Discussion
 
-Probably, a better name is `source-uri`.
-(following `document-uri` in XPath,
-see: https://www.w3.org/TR/xpath-functions/#func-document-uri[fn:document-uri])
+Probably, a better name is `source-uri`
+(after
+https://www.w3.org/TR/xpath-functions/#func-document-uri[`fn:document-uri` in XPath]).
+
+Should a path starting with a Windows drive letter be allowed?
+(e.g. "c:/Users/john-doe/example.fth")
+ +
+See also:
+https://www.rfc-editor.org/rfc/rfc8089.html#appendix-E[RFC 8089 / Nonstandard Syntax Variations].
 
 
 
