@@ -5,7 +5,7 @@
 
 
 
-== `resolve-path-in`
+== `resolve-path-to`
 `( sd.path sd.base-path sd.buffer -- sd.path | sd.path.resolved )`
 
 If _sd.path_ is an absolute IRI or full path, return it unchanged.
@@ -37,7 +37,10 @@ These facts can be used to check whether to return _sd.path_ unchanged.
 
 === Discussion
 
-Find a better name for this word.
+Maybe find a better name for this word. Some options:
+
+- `resolve-path-buffer`
+- `resolve-path-to-buffer`
 
 The throw code `-81` may be changed.
 
@@ -46,7 +49,7 @@ The throw code `-81` may be changed.
 `( sd.path sd.base-path -- sd.path | sd.path.resolved.transient )`
 
 Place the address and length of a transient buffer
-on the stack and perform the function of `resolve-path-in`.
+on the stack and perform the function of `resolve-path-to`.
 
 The transient buffer shall be at least 255 characters long.
 
