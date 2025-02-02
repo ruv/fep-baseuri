@@ -19,15 +19,23 @@ The underlying concept is similar to the Base URI concept,
 see https://www.rfc-editor.org/rfc/rfc3986.html#section-5.1[RFC 3986
 (Uniform Resource Identifier, 5.1. Establishing a Base URI)].
 
-In a general case, a base path is an https://en.wikipedia.org/wiki/Internationalized_Resource_Identifier[IRI].
+In the general case, a base path is an
+https://en.wikipedia.org/wiki/Internationalized_Resource_Identifier[IRI]
+(see https://www.rfc-editor.org/rfc/rfc3987.html[RFC 3987
+  ("Internationalized Resource Identifiers")]).
 
+.Side note
 --
 The only significant difference of IRIs from URIs is that
-in IRIs the Universal Character Set (UNICODE) is used,
+in IRIs the Universal Character Set (Unicode) is used,
 where URIs were limited to ASCII
 and so the https://en.wikipedia.org/wiki/Percent-encoding[percent-encoding]
 is used for characters outside the ASCII charset.
 --
+
+An IRI is represented as a character string in the implementation-defined encoding.
+Thus, only a subset of Unicode characters may be supported in IRIs.
+Unsupported characters may be percent-encoded.
 
 If and only if the implied URI scheme of a base path is `file`
 (see https://www.rfc-editor.org/rfc/rfc8089.html[RFC 8089 (The "file" URI Scheme)]),
@@ -109,6 +117,7 @@ See also: https://forth-standard.org/standard/exception/THROW#contribution-283[I
 
 - the size of the transient buffer for the
 link:./glossary.adoc#resolve-path[`resolve-path`] word.
+- what URI schemes are supported in `included` and how they are handled (if any).
 
 
 ==== Ambiguous conditions
